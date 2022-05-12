@@ -5,7 +5,7 @@ unset resourceGroup
 unset subscriptionId
 
 usage() {
-  echo "Usage: $0 -e environment } [ -n networkSecurityGroup ] [ -r resourceGroup ] [ -s subscriptionId ]" 1>&2 
+  echo "Usage: $0 [ -e environment ] [ -n networkSecurityGroup ] [ -r resourceGroup ] [ -s subscriptionId ]" 1>&2 
 }
 
 exit_abnormal() {
