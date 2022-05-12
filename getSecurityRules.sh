@@ -35,7 +35,8 @@ fi
 
 uri="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.Network/networkSecurityGroups/$networkSecurityGroup?api-version=2021-08-01"
 
+# call nsg api, remove unneeded properties from response and only store the custom security rules
 secRules=$(az rest --method get --uri $uri | jq 'del(.properties.securityRules[] | .id, .etag, .type, .properties.provisioningState, .properties.priority) | .properties.securityRules')
 
-
+# add custom security rules to a deployment parameter ARM template
 jq --argjson input "$format" '.parameters.securityRules.value += $input' template.parameters.json > "$environment.parameters.json"
