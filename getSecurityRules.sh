@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Outputs the custom security rules for a given Azure Network Security Group in a deployment parameter ARM template
+
 set -e
 unset subscriptionId
 unset networkSecurityGroup
@@ -34,14 +37,17 @@ if [ -z "$networkSecurityGroup" ] || [ -z "$resourceGroup" ]; then
         exit 1
 fi
 
-subscriptionId=$(az account show --query "id" -o tsv)
+readonly MY_PATH=`dirname "$0"`
+readonly SUBSCRIPTION_ID=$(az account show --query "id" -o tsv)
 
 # call nsg api, remove unneeded properties from response and only store the custom security rules
-uri="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.Network/networkSecurityGroups/$networkSecurityGroup?api-version=2021-08-01"
+uri="https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$resourceGroup/providers/Microsoft.Network/networkSecurityGroups/$networkSecurityGroup?api-version=2021-08-01"
 securityRules=$(az rest --method get --uri $uri | jq 'del(.properties.securityRules[] | .id, .etag, .type, .properties.provisioningState, .properties.priority) | .properties.securityRules')
 if [ -z "$securityRules" ]; then
         exit 1
 fi
 
 # add custom security rules to a deployment parameter ARM template
-jq --argjson input "$securityRules" '.parameters.securityRules.value += $input' template.parameters.json > "$networkSecurityGroup.parameters.json"
+inputTemplate="$MY_PATH/template.parameters.json"
+outputTemplate="$MY_PATH/$networkSecurityGroup.parameters.json"
+jq --argjson input "$securityRules" '.parameters.securityRules.value += $input' $inputTemplate > $outputTemplate
